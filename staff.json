@@ -1,0 +1,81 @@
+[
+    {
+        "name": "Sourav",
+        "role": "21",
+        "shifts": [
+            "5",
+            "2",
+            "3"
+        ]
+    },
+    {
+        "name": "Staff name",
+        "role": "Role",
+        "shifts": [
+            "e.g.",
+            "Mon AM",
+            "Tue PM"
+        ]
+    },
+    {
+        "name": "Staff name",
+        "role": "Role",
+        "shifts": [
+            "e.g.",
+            "Mon 8:00 AM",
+            "Tue 3:00 PM"
+        ]
+    },
+    {
+        "name": "Staff name",
+        "role": "ssa",
+        "shifts": [
+            "e.g.",
+            "Mon 8:00 AM",
+            "Tue 3:00 PM"
+        ]
+    },
+    {
+        "name": "Staff name",
+        "role": "Role",
+        "shifts": [
+            "e.g.",
+            "Mon 8:00 AM - 5:00 PM"
+        ]
+    },
+    {
+        "name": "sd",
+        "role": "dff",
+        "shifts": [
+            "monday 3:00 am"
+        ]
+    },
+    {
+        "name": "sd",
+        "role": "sds",
+        "shifts": [
+            "fssf"
+        ]
+    },
+    {
+        "name": "Wwewr",
+        "role": "12345087",
+        "shifts": [
+            "dsd"
+        ]
+    },
+    {
+        "name": "ejhvwjr",
+        "role": "112354",
+        "shifts": [
+            "asae"
+        ]
+    },
+    {
+        "name": "SOURAV",
+        "role": "231580110031",
+        "shifts": [
+            "sunday 8 am - 3 pm"
+        ]
+    }
+]
