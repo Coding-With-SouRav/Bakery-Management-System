@@ -10,6 +10,7 @@ PRODUCTS_FILE = "products.json"
 ORDERS_FILE = "orders.json"
 STAFF_FILE = "staff.json"
 WINDOW_STATE_FILE = "window_state.json"
+
 def resource_path(relative_path):
     """ Get absolute path to resources for both dev and PyInstaller """
     try:
@@ -23,12 +24,15 @@ def resource_path(relative_path):
     if not os.path.exists(full_path):
         raise FileNotFoundError(f"Resource not found: {full_path}")
     return full_path
+
 class Ingredient:
+
     def __init__(self, name, quantity, unit, reorder_level):
         self.name = name
         self.quantity = quantity
         self.unit = unit
         self.reorder_level = reorder_level
+
     def to_dict(self):
         return {
             "name": self.name,
@@ -36,12 +40,15 @@ class Ingredient:
             "unit": self.unit,
             "reorder_level": self.reorder_level
         }
+
 class Product:
+
     def __init__(self, name, price, recipe, quantity=0):
         self.name = name
         self.price = price
         self.recipe = recipe
         self.quantity = quantity
+
     def to_dict(self):
         return {
             "name": self.name,
@@ -49,7 +56,9 @@ class Product:
             "recipe": self.recipe,
             "quantity": self.quantity
         }
+
 class Order:
+
     def __init__(self, customer_name, items, order_id=None, total=0, status="Pending", timestamp=None):
         self.order_id = order_id if order_id else datetime.now().strftime("%Y%m%d%H%M%S")
         self.customer_name = customer_name
@@ -57,6 +66,7 @@ class Order:
         self.total = total
         self.status = status
         self.timestamp = datetime.fromisoformat(timestamp) if timestamp else datetime.now()
+
     def to_dict(self):
         return {
             "order_id": self.order_id,
@@ -66,24 +76,30 @@ class Order:
             "status": self.status,
             "timestamp": self.timestamp.isoformat()
         }
+
 class Staff:
+
     def __init__(self, name, role, shifts):
         self.name = name
         self.role = role
         self.shifts = shifts
+
     def to_dict(self):
         return {
             "name": self.name,
             "role": self.role,
             "shifts": self.shifts
         }
+
 class BakeryManager:
+
     def __init__(self):
         self.ingredients = self.load_data(INGREDIENTS_FILE, Ingredient)
         self.products = self.load_data(PRODUCTS_FILE, Product)
         self.orders = self.load_data(ORDERS_FILE, Order)
         self.staff = self.load_data(STAFF_FILE, Staff)
     @staticmethod
+
     def load_data(file, cls):
         try:
             with open(file, "r") as f:
@@ -91,6 +107,7 @@ class BakeryManager:
                 return [cls(**item) for item in data]
         except (FileNotFoundError, json.JSONDecodeError):
             return []
+
     def save_data(self):
         with open(INGREDIENTS_FILE, "w") as f:
             json.dump([i.to_dict() for i in self.ingredients], f, indent=4)
@@ -100,9 +117,11 @@ class BakeryManager:
             json.dump([o.to_dict() for o in self.orders], f, indent=4)
         with open(STAFF_FILE, "w") as f:
             json.dump([s.to_dict() for s in self.staff], f, indent=4)
+
     def add_ingredient(self, name, quantity, unit, reorder_level):
         self.ingredients.append(Ingredient(name, quantity, unit, reorder_level))
         self.save_data()
+
     def restock_ingredient(self, name, quantity):
         for ingredient in self.ingredients:
             if ingredient.name == name:
@@ -110,11 +129,14 @@ class BakeryManager:
                 self.save_data()
                 return True
         return False
+
     def check_low_stock(self):
         return [ing for ing in self.ingredients if ing.quantity < ing.reorder_level]
+
     def add_product(self, name, price, recipe, quantity):
         self.products.append(Product(name, price, recipe, quantity))
         self.save_data()
+
     def create_order(self, customer_name, items):
         for product_name, qty in items.items():
             product = next((p for p in self.products if p.name == product_name), None)
@@ -128,12 +150,15 @@ class BakeryManager:
         self.orders.append(order)
         self.save_data()
         return True
+
     def get_product_price(self, product_name):
         product = next((p for p in self.products if p.name == product_name), None)
         return product.price if product else 0
+
     def add_staff(self, name, role, shifts):
         self.staff.append(Staff(name, role, shifts))
         self.save_data()
+
     def generate_sales_report(self):
         total_sales = sum(order.total for order in self.orders if order.status == "Completed")
         return {
@@ -141,13 +166,16 @@ class BakeryManager:
             "total_orders": len(self.orders),
             "popular_products": self.get_popular_products()
         }
+
     def get_popular_products(self):
         product_counts = {}
         for order in self.orders:
             for product, qty in order.items.items():
                 product_counts[product] = product_counts.get(product, 0) + qty
         return sorted(product_counts.items(), key=lambda x: x[1], reverse=True)
+
 class PlaceholderEntry(ttk.Entry):
+
     def __init__(self, master=None, placeholder="", *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.placeholder = placeholder
@@ -156,18 +184,23 @@ class PlaceholderEntry(ttk.Entry):
         self.bind("<FocusIn>", self.clear_placeholder)
         self.bind("<FocusOut>", self.set_placeholder)
         self.set_placeholder()
+
     def clear_placeholder(self, event=None):
         if self.get() == self.placeholder:
             self.delete(0, tk.END)
             self.config(foreground=self.default_fg, font=('Arial', 11))
+
     def set_placeholder(self, event=None):
         if not self.get():
             self.insert(0, self.placeholder)
             self.config(foreground=self.placeholder_color, font=('Arial', 10, 'italic'))
+
     def get_value(self):
         value = self.get().strip()
         return "" if value == self.placeholder else value
+
 class BakeryGUI:
+
     def __init__(self, master):
         self.master = master
         self.manager = BakeryManager()
@@ -203,6 +236,7 @@ class BakeryGUI:
         self.create_main_menu()
         self.load_window_geometry()
         master.protocol("WM_DELETE_WINDOW", self.on_close)
+
     def load_window_geometry(self):
         if os.path.exists(self.config_file):
             config = configparser.ConfigParser()
@@ -218,6 +252,7 @@ class BakeryGUI:
                     self.master.state("zoomed")
                 elif state == "iconic":
                     self.master.iconify()
+
     def save_window_geometry(self):
         config = configparser.ConfigParser()
         config["Geometry"] = {
@@ -226,10 +261,12 @@ class BakeryGUI:
         }
         with open(self.config_file, "w") as f:
             config.write(f)
+
     def on_close(self):
         """Handle window close event"""
         self.save_window_geometry()
         self.master.destroy()
+
     def create_main_menu(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Main Menu", style='Header.TLabel').pack(pady=20)
@@ -244,11 +281,13 @@ class BakeryGUI:
         for text, command in menu_items:
             btn = ttk.Button(self.content_frame, text=text, command=command)
             btn.pack(fill='x', pady=5, padx=40, ipady=8)
+
     def clear_content(self):
         """Clears only the dynamic content area"""
         if self.content_frame.winfo_exists():
             for widget in self.content_frame.winfo_children():
                 widget.destroy()
+
     def inventory_management(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Inventory Management", style='Header.TLabel').pack(pady=10)
@@ -260,6 +299,7 @@ class BakeryGUI:
         ]
         for text, command in buttons:
             ttk.Button(self.content_frame, text=text, command=command).pack(fill='x', pady=4, padx=30, ipady=5)
+
     def add_ingredient_window(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Add Ingredient", style='Header.TLabel').pack(pady=10)
@@ -277,6 +317,7 @@ class BakeryGUI:
             entry = PlaceholderEntry(form_frame, placeholder=placeholder)
             entry.grid(row=row, column=1, pady=5, padx=10)
             self.entries[entry_name] = entry
+
         def submit():
             try:
                 values = {
@@ -296,6 +337,7 @@ class BakeryGUI:
                 self.add_ingredient_window()
             except ValueError:
                 messagebox.showerror("Error", "Invalid numeric input!")
+
         def move_to_inventory_management():
             for entry in self.entries.values():
                 if entry.get_value() != "":
@@ -305,6 +347,7 @@ class BakeryGUI:
             self.inventory_management()
         ttk.Button(form_frame, text="Submit", command=submit).grid(row=4, columnspan=2, pady=15)
         ttk.Button(form_frame, text="◄ Back", command=move_to_inventory_management).grid(row=5, columnspan=2, pady=15)
+
     def product_management(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Product Management", style='Header.TLabel').pack(pady=10)
@@ -316,6 +359,7 @@ class BakeryGUI:
         ]
         for text, command in buttons:
             ttk.Button(self.content_frame, text=text, command=command).pack(fill='x', pady=4, padx=30, ipady=5)
+
     def view_products(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Products", style='Header.TLabel').pack(pady=10)
@@ -343,6 +387,7 @@ class BakeryGUI:
                 recipe_str,
                 "❌ Delete"
             ))
+
         def on_tree_click(event):
             region = tree.identify("region", event.x, event.y)
             if region == "cell":
@@ -352,6 +397,7 @@ class BakeryGUI:
                     product_name = tree.item(item, "values")[0]
                     delete_product(product_name)
         tree.bind("<Button-1>", on_tree_click)
+
         def delete_product(product_name):
             confirm = messagebox.askyesno("Confirm Delete", f"Delete {product_name}?")
             if confirm:
@@ -368,6 +414,7 @@ class BakeryGUI:
                 text="◄ Back",
                 command=self.product_management
                 ).pack(side='bottom', pady=10, anchor='center')
+
     def add_product_window(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Add Product", style='Header.TLabel').pack(pady=10)
@@ -393,9 +440,11 @@ class BakeryGUI:
         scrollbar.pack(side="right", fill="y")
         button_frame = ttk.Frame(main_frame)
         button_frame.grid(row=4, column=2, columnspan=2, pady=10)
+
         def on_frame_configure(event):
             canvas.configure(scrollregion=canvas.bbox("all"))
         scrollable_frame.bind("<Configure>", on_frame_configure)
+
         def on_mousewheel(event):
             if canvas.winfo_exists():
                 if event.delta:
@@ -408,6 +457,7 @@ class BakeryGUI:
         canvas.bind_all("<MouseWheel>", on_mousewheel)
         canvas.bind_all("<Button-4>", on_mousewheel)
         canvas.bind_all("<Button-5>", on_mousewheel)
+
         def submit_product(name_entry, price_entry, quantity_entry, ingredients_frame):
             try:
                 recipe = {}
@@ -439,6 +489,7 @@ class BakeryGUI:
                 self.add_product_window()
             except ValueError:
                 messagebox.showerror("Error", "Invalid numeric input!")
+
         def add_ingredient_row(parent_frame, canvas):
             row_frame = ttk.Frame(parent_frame, borderwidth=0, relief="solid")
             row_frame.pack(fill=tk.X, pady=2, expand=True, anchor='center')
@@ -454,9 +505,11 @@ class BakeryGUI:
             parent_frame.update_idletasks()
             canvas.config(scrollregion=canvas.bbox("all"))
             canvas.yview_moveto(1.0)
+
             def delete_ingredient_row( row_frame, canvas):
                 row_frame.destroy()
                 canvas.config(scrollregion=canvas.bbox("all"))
+
         def back():
             if name_entry.get_value() or price_entry.get_value():
                 if messagebox.askyesno("Confirmation", "Are you sure, do you want to leave?"):
@@ -472,6 +525,7 @@ class BakeryGUI:
                 text="Submit",
                 command=lambda: submit_product(name_entry, price_entry, quantity_entry, scrollable_frame)
                 ).pack(side=tk.LEFT, padx=5)
+
     def order_management(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Order Management", style='Header.TLabel').pack(pady=10)
@@ -479,6 +533,7 @@ class BakeryGUI:
         ttk.Button(self.content_frame, text="View All Orders", command=self.view_orders).pack(pady=5, fill='x', ipady=5)
         ttk.Button(self.content_frame, text="Update Order Status", command=self.update_order_status_window).pack(pady=5, fill='x', ipady=5)
         ttk.Button(self.content_frame, text="Return to Main Menu", command=self.create_main_menu).pack(pady=5, fill='x', ipady=5)
+
     def create_order_window(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="New Order", style='Header.TLabel').pack(pady=10)
@@ -496,11 +551,13 @@ class BakeryGUI:
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+
         def on_frame_configure(event):
             canvas.configure(scrollregion=canvas.bbox("all"))
         scrollable_frame.bind("<Configure>", on_frame_configure)
         button_frame = ttk.Frame(main_frame)
         button_frame.grid(row=2, column=0, columnspan=2, pady=10)
+
         def add_item_row(parent_frame, canvas):
             row_frame = ttk.Frame(parent_frame)
             row_frame.pack(fill=tk.X, pady=2, expand=True)
@@ -516,9 +573,11 @@ class BakeryGUI:
             parent_frame.update_idletasks()
             canvas.config(scrollregion=canvas.bbox("all"))
             canvas.yview_moveto(1.0)
+
         def delete_item_row(row_frame, canvas):
             row_frame.destroy()
             canvas.config(scrollregion=canvas.bbox("all"))
+
         def submit_order():
             try:
                 items = {}
@@ -552,6 +611,7 @@ class BakeryGUI:
                     messagebox.showerror("Error", "Insufficient stock for some ingredients!")
             except ValueError:
                 messagebox.showerror("Error", "Invalid quantity input!")
+
         def back():
             if customer_entry.get_value() or any(row.winfo_children() for row in scrollable_frame.winfo_children()):
                 if messagebox.askyesno("Confirmation", "Are you sure, you want to leave?"):
@@ -568,6 +628,7 @@ class BakeryGUI:
                 command=submit_order
                 ).pack(side=tk.LEFT, padx=5)
         add_item_row(scrollable_frame, canvas)
+
     def view_orders(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="View Orders", style='Header.TLabel').pack(pady=10)
@@ -601,6 +662,7 @@ class BakeryGUI:
                 order.status,
                 '❌'
             ))
+
         def on_tree_click(event):
             region = tree.identify("region", event.x, event.y)
             if region == "cell":
@@ -619,17 +681,20 @@ class BakeryGUI:
                 if column == "#1":  # ID column
                     order_id = values[0]
                     show_copy_id_popup(order_id)
+
         def show_copy_id_popup(order_id):
             popup = tk.Toplevel()
             popup.title("Copy Order ID")
             popup.geometry("300x100")
             ttk.Label(popup, text=f"Order ID: {order_id}", font=('Arial', 12)).pack(pady=10)
+
             def copy_id():
                 self.master.clipboard_clear()
                 self.master.clipboard_append(order_id)
                 popup.destroy()
             ttk.Button(popup, text="Copy", command=copy_id).pack(pady=5)
             ttk.Button(popup, text="Close", command=popup.destroy).pack(pady=5)
+
         def on_horizontal_scroll(event):
             if event.delta:
                 factor = -1 * (event.delta // 120) * 12
@@ -641,6 +706,7 @@ class BakeryGUI:
         tree.bind("<Button-5>", on_horizontal_scroll)
         tree.bind("<Button-1>", on_tree_click)
         ttk.Button(self.content_frame, text="◄ Back", command=self.order_management).pack(pady=10)
+
     def update_order_status_window(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Update Order & Product Quantity", style='Header.TLabel').pack(pady=10)
@@ -655,6 +721,7 @@ class BakeryGUI:
         ttk.Label(container, text="Quantity:", foreground=self.entry_label_color, font=self.label_font_style).grid(row=2, column=0, pady=10, padx=5)
         quantity_entry = PlaceholderEntry(container, placeholder="Enter quantity")
         quantity_entry.grid(row=2, column=1, pady=10)
+
         def submit():
             order_id = order_id_entry.get_value()
             product_name = product_entry.get_value()
@@ -690,6 +757,7 @@ class BakeryGUI:
             self.manager.save_data()
             messagebox.showinfo("Success", f"Added {quantity} {product_name} to Order {order_id}")
             self.update_order_status_window()
+
         def back():
             if any([order_id_entry.get_value(), product_entry.get_value(), quantity_entry.get_value()]):
                 if messagebox.askyesno("Confirm Exit", "Discard changes?"):
@@ -698,12 +766,14 @@ class BakeryGUI:
                 self.order_management()
         ttk.Button(container, text="◄ Back", command=back).grid(row=3, column=0, pady=20, padx=(75,0))
         ttk.Button(container, text="Update", command=submit).grid(row=3, column=1, pady=20)
+
     def staff_management(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Staff Management", style='Header.TLabel').pack(pady=10)
         ttk.Button(self.content_frame, text="Add Staff Member", command=self.add_staff_window).pack(pady=5, fill='x', ipady=5)
         ttk.Button(self.content_frame, text="View Staff Members", command=self.view_staff).pack(pady=5, fill='x', ipady=5)
         ttk.Button(self.content_frame, text="Return to Main Menu", command=self.create_main_menu).pack(pady=5, fill='x', ipady=5)
+
     def add_staff_window(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Add Staff Member", style='Header.TLabel').pack(pady=10)
@@ -718,6 +788,7 @@ class BakeryGUI:
         ttk.Label(main_frame, text="Shifts (comma-separated):", foreground=self.entry_label_color, font=self.label_font_style).grid(row=2, column=0)
         shifts_entry = PlaceholderEntry(main_frame, placeholder="e.g., Mon 8:00 AM - 5:00 PM")
         shifts_entry.grid(row=2, column=1)
+
         def submit():
             name = name_entry.get_value()
             roll = roll_entry.get_value()
@@ -750,6 +821,7 @@ class BakeryGUI:
             self.manager.add_staff(name, roll, shifts)
             messagebox.showinfo("Success", "Staff member added!")
             self.add_staff_window()
+
         def back():
             if any([name_entry.get_value(), roll_entry.get_value(), shifts_entry.get_value()]):
                 if messagebox.askyesno("Confirm Exit", "Discard changes?"):
@@ -758,6 +830,7 @@ class BakeryGUI:
                 self.staff_management()
         ttk.Button(main_frame, text="◄ Back", command=back).grid(row=3, column=0, pady=30, padx=(75,0))
         ttk.Button(main_frame, text="Submit", command=submit).grid(row=3, column=1, pady=30)
+
     def view_staff(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="View Staff Members", style='Header.TLabel').pack(pady=10)
@@ -791,6 +864,7 @@ class BakeryGUI:
                 values=(staff.name, staff.role, ", ".join(staff.shifts), '❌ Delete'),
                 tags=(str(idx),)
             )
+
         def on_tree_click(event):
             region = tree.identify("region", event.x, event.y)
             if region == "cell":
@@ -806,6 +880,7 @@ class BakeryGUI:
                             except (ValueError, IndexError):
                                 messagebox.showerror("Error", "Invalid item selection!", parent=self.content_frame)
         tree.bind("<1>", on_tree_click)
+
         def delete_staff(index):
             try:
                 if 0 <= index < len(self.manager.staff):
@@ -823,6 +898,7 @@ class BakeryGUI:
             except (IndexError, TypeError):
                 messagebox.showerror("Error", "Invalid staff member selection!", parent=self.content_frame)
         ttk.Button(self.content_frame, text="◄ Back", command=self.staff_management).pack(pady=10)
+
     def restock_ingredient_window(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Restock Ingredient", style='Header.TLabel').pack(pady=10)
@@ -834,6 +910,7 @@ class BakeryGUI:
         ttk.Label(form_frame, text="Quantity to Add:", foreground=self.entry_label_color, font=self.label_font_style).grid(row=1, column=0, padx=10, pady=10)
         quantity_entry = PlaceholderEntry(form_frame, placeholder="Quantity")
         quantity_entry.grid(row=1, column=1, padx=10)
+
         def submit():
             name = name_entry.get_value()
             quantity = quantity_entry.get_value()
@@ -849,6 +926,7 @@ class BakeryGUI:
                     messagebox.showerror("Error", "Ingredient not found!")
             except ValueError:
                 messagebox.showerror("Error", "Invalid quantity input! \nPlease add Numeric Input")
+
         def back():
             if name_entry.get_value() or quantity_entry.get_value():
                 if messagebox.askyesno("Confirmation", "Are you sure, you want to leave??"):
@@ -857,6 +935,7 @@ class BakeryGUI:
                 self.inventory_management()
         ttk.Button(form_frame, text="Restock", command=submit).grid(row=2, columnspan=2, pady=10)
         ttk.Button(form_frame, text="◄ Back", command=back).grid(row=3, columnspan=2, pady=10)
+
     def view_inventory(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Current Inventory", style='Header.TLabel').pack(pady=10)
@@ -864,6 +943,7 @@ class BakeryGUI:
         tree_frame.pack(fill='both', expand=True)
         columns = ("Name", "Quantity", "Unit", "Reorder Level", "Action")
         tree = ttk.Treeview(tree_frame, columns=columns, show='headings', selectmode='none')
+
         def _on_mousewheel(event):
             if event.delta:
                 tree.yview_scroll(-1 * int(event.delta/120), "units")
@@ -891,6 +971,7 @@ class BakeryGUI:
                     values=(ing.name, f"{ing.quantity}", ing.unit, f"{ing.reorder_level}", "❌ Delete"),
                     tags=(idx,))
         tree.tag_configure('delete', foreground='red', font=('Arial', 9, 'bold'))
+
         def on_tree_click(event):
             region = tree.identify("region", event.x, event.y)
             if region == "cell":
@@ -901,6 +982,7 @@ class BakeryGUI:
                     delete_ingredient(index)
         tree.bind("<Button-1>", on_tree_click)
         ttk.Button(self.content_frame, text="◄ Back", command=self.inventory_management).pack(pady=10)
+
         def delete_ingredient(index):
             try:
                 ingredient = self.manager.ingredients[index]
@@ -915,6 +997,7 @@ class BakeryGUI:
                     self.view_inventory()
             except (IndexError, TypeError):
                 messagebox.showerror("Error", "Ingredient not found!", parent=self.content_frame)
+
     def product_status_window(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Update Product Quantity", style='Header.TLabel').pack(pady=10)
@@ -926,6 +1009,7 @@ class BakeryGUI:
         ttk.Label(form_frame, text="Quantity to Add:", foreground=self.entry_label_color, font=self.label_font_style).grid(row=1, column=0, sticky='w', pady=5)
         quantity_entry = PlaceholderEntry(form_frame, placeholder="Enter quantity")
         quantity_entry.grid(row=1, column=1, pady=5, padx=10)
+
         def submit():
             product_name = product_entry.get_value()
             quantity = quantity_entry.get_value()
@@ -944,6 +1028,7 @@ class BakeryGUI:
                     messagebox.showerror("Error", "Product not found!")
             except ValueError:
                 messagebox.showerror("Error", "Invalid quantity input!")
+
         def back():
             if product_entry.get_value() or quantity_entry.get_value():
                 if messagebox.askyesno("Confirm", "Discard changes and return?"):
@@ -952,6 +1037,7 @@ class BakeryGUI:
                 self.product_management()
         ttk.Button(form_frame, text="Submit", command=submit).grid(row=2, columnspan=2, pady=10)
         ttk.Button(form_frame, text="◄ Back", command=back).grid(row=3, columnspan=2, pady=5)
+
     def sells_report_management(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Sells Report", style='Header.TLabel').pack(pady=10)
@@ -959,6 +1045,7 @@ class BakeryGUI:
         ttk.Button(self.content_frame, text="Sold Items", command=self.sold_items).pack(pady=5, fill='x', ipady=5)
         ttk.Button(self.content_frame, text="Earnings", command=self.earning).pack(pady=5, fill='x', ipady=5)
         ttk.Button(self.content_frame, text="Return to Main Menu", command=self.create_main_menu).pack(pady=5, fill='x', ipady=5)
+
     def pending_orders(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Pending Orders", style='Header.TLabel').pack(pady=10)
@@ -1003,6 +1090,7 @@ class BakeryGUI:
                                 f"${order.total:.2f}",
                                 order.timestamp.strftime("%Y-%m-%d %I:%M %p")),
                         tags=(order.order_id,))
+
         def on_tree_click(event):
             region = tree.identify("region", event.x, event.y)
             if region == "cell":
@@ -1028,6 +1116,7 @@ class BakeryGUI:
             style='TButton'
         )
         btn_mark.pack_forget()
+
         def mark_orders_complete():
             for order in self.manager.orders:
                 if order.order_id in self.selected_orders:
@@ -1039,6 +1128,7 @@ class BakeryGUI:
         ttk.Button(self.content_frame,
                 text="◄ Back",
                 command=self.sells_report_management).pack(pady=10)
+
     def sold_items(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Sold Items Report", style='Header.TLabel').pack(pady=10)
@@ -1087,6 +1177,7 @@ class BakeryGUI:
                     ))
         tree.insert("", "end", values=("TOTAL", "", "", "", f"${total_revenue:.2f}"), tags=('total',))
         tree.tag_configure('total', background='#e8f4ff', font=('Arial', 10, 'bold'))
+
         def on_tree_click(event):
             region = tree.identify("region", event.x, event.y)
             if region == "cell":
@@ -1109,6 +1200,7 @@ class BakeryGUI:
                                 break
         tree.bind("<1>", on_tree_click)
         ttk.Button(self.content_frame, text="◄ Back", command=self.sells_report_management).pack(pady=10)
+
     def earning(self):
         self.clear_content()
         ttk.Label(self.content_frame, text="Earnings Report", style='Header.TLabel').pack(pady=10)
@@ -1137,6 +1229,7 @@ class BakeryGUI:
             ttk.Label(metrics_frame, text=label, font=('Arial', 12, 'bold')).grid(row=i, column=0, padx=20, pady=8, sticky='w')
             ttk.Label(metrics_frame, text=f"${value:.2f}", font=('Arial', 12)).grid(row=i, column=1, padx=20, pady=8, sticky='e')
         ttk.Button(self.content_frame, text="◄ Back", command=self.sells_report_management).pack(pady=10)
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = BakeryGUI(root)
